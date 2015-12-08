@@ -1,0 +1,8 @@
+%{"benchfella": {:git, "https://github.com/alco/benchfella.git", "ddf53d16472b2dfec55066e366a70035181533cb", []},
+  "connection": {:hex, :connection, "1.0.2"},
+  "dialyze": {:hex, :dialyze, "0.2.0"},
+  "eredis": {:git, "https://github.com/wooga/eredis.git", "cbc013f516e464706493c01662e5e9dd82d1db01", [tag: "v1.0.8"]},
+  "eredis_cluster": {:git, "https://github.com/adrienmo/eredis_cluster.git", "59d82059d14add2c24b2243084ab89165d3b1953", []},
+  "ex_doc": {:hex, :ex_doc, "0.11.1"},
+  "poolboy": {:hex, :poolboy, "1.5.1"},
+  "redix": {:hex, :redix, "0.3.0"}}

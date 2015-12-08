@@ -1,0 +1,8 @@
+duration:1.0;mem stats:false;sys mem stats:false
+module;test;tags;iterations;elapsed
+BaseBench	[Ex] transactions		1	102697746
+BaseBench	[Ex] pipeline commands		1	104141085
+BaseBench	[Ex] command		1	95473632
+BaseBench	[Erl] transactions		1	111242509
+BaseBench	[Erl] pipeline commands		1	97293859
+BaseBench	[Erl] command		1	91145732

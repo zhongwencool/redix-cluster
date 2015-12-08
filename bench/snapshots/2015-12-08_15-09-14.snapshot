@@ -1,0 +1,8 @@
+duration:1.0;mem stats:false;sys mem stats:false
+module;test;tags;iterations;elapsed
+BaseBench	[erediscluster] transactions		1	96927149
+BaseBench	[erediscluster] pipeline commands		1	98030284
+BaseBench	[erediscluster] command		1	89824431
+BaseBench	[ExredisCluster] transactions		1	104372897
+BaseBench	[ExredisCluster] pipeline commands		1	104786009
+BaseBench	[ExredisCluster] command		1	181990484
