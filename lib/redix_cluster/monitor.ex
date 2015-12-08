@@ -10,11 +10,14 @@ defmodule RedixCluster.Monitor do
   defmodule State, do: defstruct cluster_nodes: [], slots: [], slots_maps: [], version: 0
   alias RedixCluster.Monitor.State , as: State
 
+  @spec connect(term) :: :ok | {:error, :connect_to_empty_nodes}
   def connect([]), do: {:error, :connect_to_empty_nodes}
   def connect(cluster_nodes), do: GenServer.call(__MODULE__, {:connect, cluster_nodes})
 
+  @spec refresh_mapping(integer) :: :ok | {:ignore, String.t}
   def refresh_mapping(version), do: GenServer.call(__MODULE__, {:reload_slots_map, version})
 
+  @spec get_pool_by_slot(integer|{:error, String.t}) :: {integer, String.t}
   def get_pool_by_slot({:error, _} = error), do: error
   def get_pool_by_slot(slot) do
     [{:cluster_state, state}] = :ets.lookup(__MODULE__, :cluster_state)
@@ -26,6 +29,7 @@ defmodule RedixCluster.Monitor do
     end
   end
 
+  @spec start_link(Keyword.t) :: GenServer.on_start
   def start_link(options), do: GenServer.start_link(__MODULE__, nil, options)
 
   def init(nil) do

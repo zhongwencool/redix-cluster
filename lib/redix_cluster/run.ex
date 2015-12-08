@@ -1,6 +1,9 @@
 defmodule RedixCluster.Run do
   @moduledoc false
 
+  @type command :: [binary]
+
+  @spec command(command, Keyword.t) :: {:ok, term} |{:error, term}
   def command(command, opts) do
     command
     |> parse_key_from_command
@@ -9,6 +12,7 @@ defmodule RedixCluster.Run do
     |> query_redis_pool(command, :command, opts)
   end
 
+  @spec pipeline([command], Keyword.t) :: {:ok, term} |{:error, term}
   def pipeline(pipeline, opts) do
     pipeline
     |> parse_keys_from_pipeline
@@ -18,6 +22,7 @@ defmodule RedixCluster.Run do
     |> query_redis_pool(pipeline, :pipeline, opts)
   end
 
+  @spec transaction([command], Keyword.t) :: {:ok, term} |{:error, term}
   def transaction(pipeline, opts) do
     transaction = [["MULTI"]] ++ pipeline ++ [["EXEC"]]
     pipeline

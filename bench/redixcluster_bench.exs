@@ -7,8 +7,6 @@ defmodule BaseBench do
     Application.ensure_all_started(:eredis_cluster)
     context =
       %{
-        redix_cluster: :redix_cluster,
-        eredis_cluster: :eredis_cluster,
         cmds: make_random_cmds,
         pipelines: make_random_pipelines,
         transactions: make_random_transactions,
@@ -16,11 +14,10 @@ defmodule BaseBench do
     {:ok, context}
   end
 
-  teardown_all _ do
-    RedixCluster.command(~w(del {user_slota}*))
-    RedixCluster.command(~w(del {user_slotb}*))
-    RedixCluster.command(~w(del {user_slotc}*))
-    RedixCluster.command(~w(del {user_slotd}*))
+  teardown_all context do
+    clear_all_key(context)
+    # wait for all keys in the pool will be deleted
+    :timer.sleep(3000)
     Application.stop(:redix_cluster)
     Application.stop(:eredis_cluster)
   end
@@ -33,27 +30,27 @@ defmodule BaseBench do
     :ok
   end
 
-  bench "[Redix]cmd", [cmds: bench_context[:cmds]] do
+  bench "Excmd", [cmds: bench_context[:cmds]] do
     for cmd <- cmds, do: RedixCluster.command(cmd)
   end
 
-  bench "[Redis]cmd", [cmds: bench_context[:cmds]] do
+  bench "Ecmd", [cmds: bench_context[:cmds]] do
     for cmd <- cmds, do: :eredis_cluster.q(cmd)
   end
 
-  bench "[Redix]pipe", [pipelines: bench_context[:pipelines]] do
+  bench "Expipe", [pipelines: bench_context[:pipelines]] do
     for pipeline <- pipelines, do: RedixCluster.pipeline(pipeline)
   end
 
-  bench "[Eredis]pipe", [pipelines: bench_context[:pipelines]] do
+  bench "Epipe", [pipelines: bench_context[:pipelines]] do
     for pipeline <- pipelines, do: :eredis_cluster.qp(pipeline)
   end
 
-  bench "[Redix]trans", [transactions: bench_context[:transactions]] do
+  bench "Extrans", [transactions: bench_context[:transactions]] do
     for transaction <- transactions, do: RedixCluster.transaction(transaction)
   end
 
-  bench "[Eredis]trans", [transactions: bench_context[:transactions]] do
+  bench "Etrans", [transactions: bench_context[:transactions]] do
     for transaction <- transactions, do: :eredis_cluster.transaction(transaction)
   end
 
@@ -88,7 +85,8 @@ defmodule BaseBench do
     slotd = Enum.map(1..50, fn(_) ->
                               val = :random.uniform 10000
                               ~w(GET {user_slotd}#{val}) end)
-    List.duplicate(slota, 1000) ++ List.duplicate(slotb, 1000) ++ List.duplicate(slotc, 1000) ++ List.duplicate(slotd, 1000)
+    List.duplicate(slota, 1000) ++ List.duplicate(slotb, 1000)
+    ++ List.duplicate(slotc, 1000) ++ List.duplicate(slotd, 1000)
   end
 
 # todo
@@ -105,7 +103,31 @@ defmodule BaseBench do
     slotd = Enum.map(1..50, fn(_) ->
                               val = :random.uniform 10000
                               ~w(GET {user_slotd}#{val}) end)
-    List.duplicate(slota, 1000) ++ List.duplicate(slotb, 1000) ++ List.duplicate(slotc, 1000) ++ List.duplicate(slotd, 1000)
+    List.duplicate(slota, 1000) ++ List.duplicate(slotb, 1000)
+    ++ List.duplicate(slotc, 1000) ++ List.duplicate(slotd, 1000)
+  end
+
+  defp clear_all_key(context) do
+  %{
+    cmds: cmds,
+    pipelines: pipelines,
+    transactions: transactions,
+   } = context
+   Enum.each(cmds, fn([_, key|_]) -> RedixCluster.command(~w(DEL #{key})) end)
+   :timer.sleep(600)
+   Enum.each(pipelines, fn(pipeline) ->
+     for cmds<- pipeline do
+       new_cmds = Enum.map(cmds, fn([_, key|_]) -> ~w(DEL #{key}) end)
+       RedixCluster.pipeline(new_cmds)
+     end
+   end)
+   :timer.sleep(600)
+   Enum.each(transactions, fn(tran) ->
+     for cmds<- tran do
+       new_cmds = Enum.map(cmds, fn([_, key|_]) -> ~w(DEL #{key}) end)
+       RedixCluster.transaction(new_cmds)
+       end
+   end)
   end
 
 end

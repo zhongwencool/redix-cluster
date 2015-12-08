@@ -3,6 +3,7 @@ defmodule RedixCluster.Supervisor do
 
   import Supervisor.Spec
 
+  @spec start_link() :: Supervisor.on_start
   def start_link() do
   children = [
     supervisor(RedixCluster.Pools.Supervisor, [[name: RedixCluster.Pools.Supervisor]], [modules: :dynamic]),
