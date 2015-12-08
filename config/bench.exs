@@ -1,6 +1,6 @@
 use Mix.Config
 
-config :exredis_cluster,
+config :redix_cluster,
   cluster_nodes: [%{host: '10.1.2.7', port: 7000},
                   %{host: '10.1.2.6', port: 7000},
                   %{host: '10.1.2.5', port: 7000}

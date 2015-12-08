@@ -3,11 +3,11 @@ defmodule BaseBench do
 
 
   setup_all do
-    Application.ensure_all_started(:exredis_cluster)
+    Application.ensure_all_started(:redix_cluster)
     Application.ensure_all_started(:eredis_cluster)
     context =
       %{
-        exredis_cluster: :exredis_cluster,
+        redix_cluster: :redix_cluster,
         eredis_cluster: :eredis_cluster,
         cmds: make_random_cmds,
         pipelines: make_random_pipelines,
@@ -17,11 +17,11 @@ defmodule BaseBench do
   end
 
   teardown_all _ do
-    ExredisCluster.command(~w(del {user_slota}*))
-    ExredisCluster.command(~w(del {user_slotb}*))
-    ExredisCluster.command(~w(del {user_slotc}*))
-    ExredisCluster.command(~w(del {user_slotd}*))
-    Application.stop(:exredis_cluster)
+    RedixCluster.command(~w(del {user_slota}*))
+    RedixCluster.command(~w(del {user_slotb}*))
+    RedixCluster.command(~w(del {user_slotc}*))
+    RedixCluster.command(~w(del {user_slotd}*))
+    Application.stop(:redix_cluster)
     Application.stop(:eredis_cluster)
   end
 
@@ -33,27 +33,27 @@ defmodule BaseBench do
     :ok
   end
 
-  bench "[Ex] command", [cmds: bench_context[:cmds]] do
-    for cmd <- cmds, do: ExredisCluster.command(cmd)
+  bench "[Redix] command", [cmds: bench_context[:cmds]] do
+    for cmd <- cmds, do: RedixCluster.command(cmd)
   end
 
-  bench "[Erl] command", [cmds: bench_context[:cmds]] do
+  bench "[Redis] command", [cmds: bench_context[:cmds]] do
     for cmd <- cmds, do: :eredis_cluster.q(cmd)
   end
 
-  bench "[Ex] pipeline", [pipelines: bench_context[:pipelines]] do
-    for pipeline <- pipelines, do: ExredisCluster.pipeline(pipeline)
+  bench "[Redix] pipeline", [pipelines: bench_context[:pipelines]] do
+    for pipeline <- pipelines, do: RedixCluster.pipeline(pipeline)
   end
 
-  bench "[Erl] pipeline", [pipelines: bench_context[:pipelines]] do
+  bench "[Eredis] pipeline", [pipelines: bench_context[:pipelines]] do
     for pipeline <- pipelines, do: :eredis_cluster.qp(pipeline)
   end
 
-  bench "[Ex] transactions", [transactions: bench_context[:transactions]] do
-    for transaction <- transactions, do: ExredisCluster.transaction(transaction)
+  bench "[Redix] transactions", [transactions: bench_context[:transactions]] do
+    for transaction <- transactions, do: RedixCluster.transaction(transaction)
   end
 
-  bench "[Erl] transactions", [transactions: bench_context[:transactions]] do
+  bench "[Eredis] transactions", [transactions: bench_context[:transactions]] do
     for transaction <- transactions, do: :eredis_cluster.transaction(transaction)
   end
 

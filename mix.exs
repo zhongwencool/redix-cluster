@@ -1,8 +1,8 @@
-defmodule ExredisCluster.Mixfile do
+defmodule RedixCluster.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :exredis_cluster,
+    [app: :redix_cluster,
      version: "0.0.1",
      elixir: "~> 1.1",
      build_embedded: Mix.env in [:prod],
@@ -14,8 +14,8 @@ defmodule ExredisCluster.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [mod: {ExredisCluster, []},
-    applications: [:logger, :redix, :eredis_cluster]]
+    [mod: {RedixCluster, []},
+    applications: [:logger, :redix]]
   end
 
   # Dependencies can be Hex packages:

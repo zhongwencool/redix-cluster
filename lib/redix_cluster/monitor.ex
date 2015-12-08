@@ -1,14 +1,14 @@
-defmodule RedisCluster.Monitor do
+defmodule RedixCluster.Monitor do
   # todo
   @moduledoc false
   
   use GenServer
-  use RedisCluster.Helper
+  use RedixCluster.Helper
 
   @redis_cluster_hash_slots 16384
 
   defmodule State, do: defstruct cluster_nodes: [], slots: [], slots_maps: [], version: 0
-  alias RedisCluster.Monitor.State , as: State
+  alias RedixCluster.Monitor.State , as: State
 
   def connect([]), do: {:error, :connect_to_empty_nodes}
   def connect(cluster_nodes), do: GenServer.call(__MODULE__, {:connect, cluster_nodes})
@@ -66,7 +66,7 @@ defmodule RedisCluster.Monitor do
 
   defp close_connection(slots_map) do
     try do
-      RedisCluster.Pools.Supervisor.stop_redis_pool(slots_map.node.pool)
+      RedixCluster.Pools.Supervisor.stop_redis_pool(slots_map.node.pool)
     catch
       _ -> :ok
     end
@@ -140,7 +140,7 @@ defmodule RedisCluster.Monitor do
   end
 
   defp connect_node(node) do
-    case RedisCluster.Pools.Supervisor.new_pool(node.host, node.port) do
+    case RedixCluster.Pools.Supervisor.new_pool(node.host, node.port) do
       {:ok, pool_name} -> %{node |pool: pool_name}
       _ -> nil
     end

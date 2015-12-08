@@ -1,9 +1,9 @@
-defmodule RedisCluster.Worker do
+defmodule RedixCluster.Worker do
   @moduledoc """
     role: poolboy worker
   """
   use GenServer
-  use RedisCluster.Helper
+  use RedixCluster.Helper
 
   def start_link(args), do: GenServer.start_link(__MODULE__, args)
 
@@ -12,7 +12,7 @@ defmodule RedisCluster.Worker do
    backoff = get_env(:backoff, 2000)
    max_reconnection_attempts = get_env(:max_reconnection_attempts)
    :erlang.process_flag(:trap_exit, true)
-   RedisCluster.Pools.Supervisor.register_worker_connection(worker[:pool_name])
+   RedixCluster.Pools.Supervisor.register_worker_connection(worker[:pool_name])
    result = Redix.start_link([host: worker[:host], port: worker[:port]],
      [socket_opts: socket_opts, backoff: backoff, max_reconnection_attempts: max_reconnection_attempts])
    :erlang.process_flag(:trap_exit, false)

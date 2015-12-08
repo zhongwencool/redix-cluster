@@ -26,8 +26,8 @@ use Mix.Config
 #      will exit with the original error's reason. If the value is `nil`, there's
 #      no limit to the reconnection attempts that can be made. Defaults to `nil`.
 
-#     config :exredis_cluster, key: :value
-config :exredis_cluster,
+#     config :redix_cluster, key: :value
+config :redix_cluster,
   cluster_nodes: [%{host: '10.1.2.7', port: 7000},
                   %{host: '10.1.2.6', port: 7000},
                   %{host: '10.1.2.5', port: 7000}
@@ -43,7 +43,7 @@ config :exredis_cluster,
 #
 # And access this configuration in your application as:
 #
-#     Application.get_env(:exredis_cluster, :key)
+#     Application.get_env(:redix_cluster, :key)
 #
 # Or configure a 3rd-party app:
 #

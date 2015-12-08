@@ -1,4 +1,4 @@
-defmodule RedisCluster.Hash do
+defmodule RedixCluster.Hash do
   @moduledoc false
 
   use Bitwise

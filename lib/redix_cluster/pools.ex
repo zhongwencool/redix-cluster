@@ -1,8 +1,8 @@
-defmodule RedisCluster.Pools.Supervisor do
+defmodule RedixCluster.Pools.Supervisor do
   @moduledoc false
   
   use Supervisor
-  use RedisCluster.Helper
+  use RedixCluster.Helper
 
   @default_pool_size 10
   @default_pool_max_overflow 0
@@ -23,7 +23,7 @@ defmodule RedisCluster.Pools.Supervisor do
         pool_size = get_env(:pool_size, @default_pool_size)
        	pool_max_overflow = get_env(:pool_max_overflow, @default_pool_max_overflow)
         pool_args = [name: {:local, pool_name},
-                     worker_module: RedisCluster.Worker,
+                     worker_module: RedixCluster.Worker,
                      size: pool_size,
                      max_overflow: pool_max_overflow]
         worker_args = [host: host, port: port, pool_name: pool_name]

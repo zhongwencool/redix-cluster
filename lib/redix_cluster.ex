@@ -1,10 +1,10 @@
-defmodule ExredisCluster do
+defmodule RedixCluster do
   use Application
 
   @max_retry 20
   @redis_retry_delay 100
 
-  def start(_type, _args), do: RedisCluster.Supervisor.start_link
+  def start(_type, _args), do: RedixCluster.Supervisor.start_link
 
   def command(command, opts \\[]), do: command(command, opts, 0)
 
@@ -39,21 +39,21 @@ defmodule ExredisCluster do
   defp command(_command, _opts, count) when count >= @max_retry, do: {:error, :no_connection}
   defp command(command, opts, count) do
     unless count==0, do: :timer.sleep(@redis_retry_delay)
-    RedisCluster.Run.command(command, opts)
+    RedixCluster.Run.command(command, opts)
     |> need_retry(command, opts, count, :command)
   end
 
   defp pipeline(_commands, _opts, count) when count >= @max_retry, do: {:error, :no_connection}
   defp pipeline(commands, opts, count) do
     unless count==0, do: :timer.sleep(@redis_retry_delay)
-    RedisCluster.Run.pipeline(commands, opts)
+    RedixCluster.Run.pipeline(commands, opts)
     |> need_retry(commands, opts, count, :pipeline)
   end
 
   defp transaction(_commands, _opts, count) when count >= @max_retry, do: {:error, :no_connection}
   defp transaction(commands, opts, count) do
     unless count==0, do: :timer.sleep(@redis_retry_delay)
-    RedisCluster.Run.transaction(commands, opts)
+    RedixCluster.Run.transaction(commands, opts)
     |> need_retry(commands, opts, count, :transaction)
   end
 
