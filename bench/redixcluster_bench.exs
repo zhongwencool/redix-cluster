@@ -33,27 +33,27 @@ defmodule BaseBench do
     :ok
   end
 
-  bench "[Redix] command", [cmds: bench_context[:cmds]] do
+  bench "[Redix]cmd", [cmds: bench_context[:cmds]] do
     for cmd <- cmds, do: RedixCluster.command(cmd)
   end
 
-  bench "[Redis] command", [cmds: bench_context[:cmds]] do
+  bench "[Redis]cmd", [cmds: bench_context[:cmds]] do
     for cmd <- cmds, do: :eredis_cluster.q(cmd)
   end
 
-  bench "[Redix] pipeline", [pipelines: bench_context[:pipelines]] do
+  bench "[Redix]pipe", [pipelines: bench_context[:pipelines]] do
     for pipeline <- pipelines, do: RedixCluster.pipeline(pipeline)
   end
 
-  bench "[Eredis] pipeline", [pipelines: bench_context[:pipelines]] do
+  bench "[Eredis]pipe", [pipelines: bench_context[:pipelines]] do
     for pipeline <- pipelines, do: :eredis_cluster.qp(pipeline)
   end
 
-  bench "[Redix] transactions", [transactions: bench_context[:transactions]] do
+  bench "[Redix]trans", [transactions: bench_context[:transactions]] do
     for transaction <- transactions, do: RedixCluster.transaction(transaction)
   end
 
-  bench "[Eredis] transactions", [transactions: bench_context[:transactions]] do
+  bench "[Eredis]trans", [transactions: bench_context[:transactions]] do
     for transaction <- transactions, do: :eredis_cluster.transaction(transaction)
   end
 
