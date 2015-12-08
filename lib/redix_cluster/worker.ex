@@ -37,7 +37,7 @@ defmodule RedixCluster.Worker do
 
   def handle_info(_request, state), do: {:noreply, state}
 
-  def terminate(_reason, %{conn: nil}), do: :ok
+  def terminate(_reason, %{conn: :no_connection}), do: :ok
   def terminate(_reason, %{conn: conn}), do: Redix.stop(conn)
 
 end
