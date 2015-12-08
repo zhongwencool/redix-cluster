@@ -1,22 +1,120 @@
 defmodule RedixCluster do
+  @moduledoc """
+    This module provides the main API to interface with Redis Cluster by redix.
+
+    ## Overview
+
+     todo  description
+
+    """
   use Application
+
+  @type command :: [binary]
 
   @max_retry 20
   @redis_retry_delay 100
 
+  @doc """
+    Starts RedixCluster Application by config.exs
+  """
+  @spec start(Atom, :permanent | :transient | :temporary) :: Supervisor.on_start
   def start(_type, _args), do: RedixCluster.Supervisor.start_link
 
+  @doc """
+  `Make sure` CROSSSLOT Keys in request hash to the same slot
+
+  This function works exactly like `Redix.command/3`
+  ## Examples
+
+      iex> RedixCluster.command(~w(SET mykey foo))
+      {:ok, "OK"}
+      iex> RedixCluster.command(~w(GET mykey))
+      {:ok, "foo"}
+
+      iex> RedixCluster.command(~w(INCR mykey zhongwen))
+      {:error,
+       %Redix.Error{message: "ERR wrong number of arguments for 'incr' command"}}
+      iex> RedixCluster.command(~w(mget ym d ))
+      {:error,
+       %Redix.Error{message: "CROSSSLOT Keys in request don't hash to the same slot"}}
+      iex> RedixCluster.command(~w(mget ym d ))
+      {:error,
+      %Redix.Error{message: "CROSSSLOT Keys in request don't hash to the same slot"}}
+      iex> RedixCluster.command(~w(mset {keysamehash}ym 1 {keysamehash}d 2 ))
+      {:ok, "OK"}
+      iex> RedixCluster.command(~w(mget {keysamehash}ym {keysamehash}d ))
+      {:ok, ["1", "2"]}
+
+  """
+  @spec command(String.t, Keyword.t) ::
+    {:ok, Redix.Protocol.redis_value} |
+    {:error, atom | Redix.Error.t}
   def command(command, opts \\[]), do: command(command, opts, 0)
 
+  @doc """
+    This function works exactly like `RedixCluster.command/2` but:
+
+    the error will be raised
+
+    ## Examples
+
+      iex> RedixCluster.command!(~w(SET mykey foo)
+      "OK"
+
+      iex> RedixCluster.command!(~w(INCR mykey))
+      ** (Redix.Error) ERR value is not an integer or out of range
+         (redix_cluster) lib/redix_cluster.ex:40: RedixCluster.command!/2
+
+  """
+  @spec command!(String.t, Keyword.t) :: Redix.Protocol.redis_value
   def command!(command, opts \\[]) do
     case command(command, opts, 0) do
       {:ok, resp} -> resp
       {:error, error} -> raise error
     end
   end
+  @doc """
+  `Make sure` CROSSSLOT Keys in request hash to the same slot
 
+  This function works exactly like `Redix.pipeline/3`
+
+  ## Examples
+
+    iex> RedixCluster.pipeline([~w(INCR mykey), ~w(INCR mykey), ~w(DECR mykey)])
+    {:ok, [1, 2, 1]}
+
+    iex> RedixCluster.pipeline([~w(SET {samehash}k3 foo), ~w(INCR {samehash}k2), ~w(GET {samehash}k1)])
+    {:ok, ["OK", 1, nil]}
+
+    iex> RedixCluster.pipeline([~w(SET {diffhash3}k3 foo), ~w(INCR {diffhash2}k2), ~w(GET {diffhash1}k1)])
+    {:error, :key_must_same_slot}
+
+  """
+  @spec pipeline([command], Keyword.t) ::
+     {:ok, [Redix.Protocol.redis_value]} |
+     {:error, atom}
   def pipeline(commands, opts\\ []), do: pipeline(commands, opts, 0)
 
+  @doc """
+  `Make sure` CROSSSLOT Keys in request hash to the same slot
+
+  This function works exactly like `RedixCluster.pipeline/2`
+
+  ## Examples
+
+    iex> RedixCluster.pipeline!([~w(INCR mykey), ~w(INCR mykey), ~w(DECR mykey)])
+    {:ok, [1, 2, 1]}
+
+    iex> RedixCluster.pipeline!([~w(SET {samehash}k3 foo), ~w(INCR {samehash}k2), ~w(GET {samehash}k1)])
+    {:ok, ["OK", 1, nil]}
+
+    iex> RedixCluster.pipeline!([~w(SET {diffhash3}k3 foo), ~w(INCR {diffhash2}k2), ~w(GET {diffhash1}k1)])
+    ** (UndefinedFunctionError) undefined function: :key_must_same_slot.exception/1 (module :key_must_same_slot is not available)
+                    :key_must_same_slot.exception([])
+    (redix_cluster) lib/redix_cluster.ex:48: RedixCluster.pipeline!/2
+
+  """
+  @spec pipeline!([command], Keyword.t) :: [Redix.Protocol.redis_value]
   def pipeline!(commands, opts\\ []) do
     case pipeline(commands, opts, 0) do
       {:error, error} -> raise error
@@ -24,8 +122,39 @@ defmodule RedixCluster do
     end
   end
 
+  @doc """
+  `Make sure` CROSSSLOT Keys in request hash to the same slot
+
+  ## Examples
+
+    iex> RedixCluster.transaction([~w(set mykey 1), ~w(INCR mykey), ~w(INCR mykey), ~w(DECR mykey)])
+    {:ok, ["OK", "QUEUED", "QUEUED", "QUEUED", "QUEUED", ["OK", 2, 3, 2]]}
+
+    iex> RedixCluster.transaction([~w(SET {samehash}k3 foo), ~w(INCR {samehash}k2), ~w(GET {samehash}k1)])
+    {:ok, ["OK", "QUEUED", "QUEUED", "QUEUED", ["OK", 2, nil]]}
+  """
+  @spec transaction([command], Keyword.t) ::
+     {:ok, [Redix.Protocol.redis_value]} |
+     {:error, atom}
   def transaction(commands, opts\\ []), do: transaction(commands, opts, 0)
 
+  @doc """
+  `Make sure` CROSSSLOT Keys in request hash to the same slot
+
+  ## Examples
+
+    iex> RedixCluster.transaction!([~w(set mykey 1), ~w(INCR mykey), ~w(INCR mykey), ~w(DECR mykey)])
+    {:ok, ["OK", "QUEUED", "QUEUED", "QUEUED", "QUEUED", ["OK", 2, 3, 2]]}
+
+    iex> RedixCluster.transaction!([~w(SET {samehash}k3 foo), ~w(INCR {samehash}k2), ~w(GET {samehash}k1)])
+    {:ok, ["OK", "QUEUED", "QUEUED", "QUEUED", ["OK", 2, nil]]}
+
+    iex> RedixCluster.transaction!([~w(SET {diffhash3}k3 foo), ~w(INCR {diffhash2}k2), ~w(GET {diffhash1}k1)])
+         ** (UndefinedFunctionError) undefined function: :key_must_same_slot.exception/1 (module :key_must_same_slot is not available)
+                             :key_must_same_slot.exception([])
+             (redix_cluster) lib/redix_cluster.ex:57: RedixCluster.transaction!/2
+  """
+  @spec transaction([command], Keyword.t) :: [Redix.Protocol.redis_value]
   def transaction!(commands, opts\\ []) do
     case transaction(commands, opts, 0) do
       {:error, error} -> raise error
