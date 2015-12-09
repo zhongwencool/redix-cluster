@@ -81,7 +81,7 @@ defmodule RedixCluster do
 
     ## Examples
 
-      iex> RedixCluster.command!(~w(SET mykey foo)
+      iex> RedixCluster.command!(~w(SET mykey foo))
       "OK"
 
       iex> RedixCluster.command!(~w(INCR mykey))

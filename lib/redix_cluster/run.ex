@@ -5,32 +5,47 @@ defmodule RedixCluster.Run do
 
   @spec command(command, Keyword.t) :: {:ok, term} |{:error, term}
   def command(command, opts) do
-    command
-    |> parse_key_from_command
-    |> key_to_slot_hash
-    |> RedixCluster.Monitor.get_pool_by_slot
-    |> query_redis_pool(command, :command, opts)
+    case RedixCluster.Monitor.get_slot_cache do
+     {:cluster, slots_maps, slots, version} ->
+        command
+        |> parse_key_from_command
+        |> key_to_slot_hash
+        |> get_pool_by_slot(slots_maps, slots, version)
+        |> query_redis_pool(command, :command, opts)
+     {:not_cluster, version, pool_name} ->
+       query_redis_pool({version, pool_name}, command, :command, opts)
+    end
   end
 
   @spec pipeline([command], Keyword.t) :: {:ok, term} |{:error, term}
   def pipeline(pipeline, opts) do
-    pipeline
-    |> parse_keys_from_pipeline
-    |> keys_to_slot_hashs
-    |> is_same_slot_hashs
-    |> RedixCluster.Monitor.get_pool_by_slot
-    |> query_redis_pool(pipeline, :pipeline, opts)
+    case RedixCluster.Monitor.get_slot_cache do
+      {:cluster, slots_maps, slots, version} ->
+         pipeline
+         |> parse_keys_from_pipeline
+         |> keys_to_slot_hashs
+         |> is_same_slot_hashs
+         |> get_pool_by_slot(slots_maps, slots, version)
+         |> query_redis_pool(pipeline, :pipeline, opts)
+      {:not_cluster, version, pool_name} ->
+         query_redis_pool({version, pool_name}, pipeline, :pipeline, opts)
+    end
   end
 
   @spec transaction([command], Keyword.t) :: {:ok, term} |{:error, term}
   def transaction(pipeline, opts) do
     transaction = [["MULTI"]] ++ pipeline ++ [["EXEC"]]
-    pipeline
-    |> parse_keys_from_pipeline
-    |> keys_to_slot_hashs
-    |> is_same_slot_hashs
-    |> RedixCluster.Monitor.get_pool_by_slot
-    |> query_redis_pool(transaction, :pipeline, opts)
+    case RedixCluster.Monitor.get_slot_cache do
+      {:cluster, slots_maps, slots, version} ->
+         pipeline
+         |> parse_keys_from_pipeline
+         |> keys_to_slot_hashs
+         |> is_same_slot_hashs
+         |> get_pool_by_slot(slots_maps, slots, version)
+         |> query_redis_pool(transaction, :pipeline, opts)
+      {:not_cluster, version, pool_name} ->
+         query_redis_pool({version, pool_name}, transaction, :pipeline, opts)
+    end
   end
 
   defp parse_key_from_command([term1, term2|_]), do: verify_command_key(term1, term2)
@@ -66,6 +81,16 @@ defmodule RedixCluster.Run do
     case Enum.all?(hashs, fn(h) -> h != nil and h == hash end) do
       false -> {:error, :key_must_same_slot}
       true -> hash
+    end
+  end
+
+  def get_pool_by_slot({:error, _} = error, _, _, _), do: error
+  def get_pool_by_slot(slot, slots_maps, slots, version) do
+    index = Enum.at(slots, slot)
+    cluster = Enum.at(slots_maps, index - 1)
+    case cluster == nil or cluster.node == nil do
+      true ->  {version, nil}
+      false -> {version, cluster.node.pool}
     end
   end
 

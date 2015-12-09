@@ -7,7 +7,7 @@ defmodule RedixCluster.Monitor do
 
   @redis_cluster_hash_slots 16384
 
-  defmodule State, do: defstruct cluster_nodes: [], slots: [], slots_maps: [], version: 0
+  defmodule State, do: defstruct cluster_nodes: [], slots: [], slots_maps: [], version: 0, is_cluster: true
 
   @spec connect(term) :: :ok | {:error, :connect_to_empty_nodes}
   def connect([]), do: {:error, :connect_to_empty_nodes}
@@ -16,15 +16,14 @@ defmodule RedixCluster.Monitor do
   @spec refresh_mapping(integer) :: :ok | {:ignore, String.t}
   def refresh_mapping(version), do: GenServer.call(__MODULE__, {:reload_slots_map, version})
 
-  @spec get_pool_by_slot(integer|{:error, String.t}) :: {integer, String.t}
-  def get_pool_by_slot({:error, _} = error), do: error
-  def get_pool_by_slot(slot) do
+  @spec get_slot_cache() :: {:cluster, [binary], [integer], integer} | {:not_cluster, integer, atom}
+  def get_slot_cache() do
     [{:cluster_state, state}] = :ets.lookup(__MODULE__, :cluster_state)
-    index = Enum.at(state.slots, slot)
-    cluster = Enum.at(state.slots_maps, index - 1)
-    case cluster == nil or cluster.node == nil do
-      true ->  {state.version, nil}
-      false -> {state.version, cluster.node.pool}
+    case state.is_cluster do
+      true -> {:cluster, state.slots_maps, state.slots, state.version}
+      false ->
+        [slots_map] = state.slots_maps
+        {:not_cluster, state.version, slots_map.node.pool}
     end
   end
 
@@ -35,7 +34,10 @@ defmodule RedixCluster.Monitor do
     :ets.new(__MODULE__, [:protected, :set, :named_table, {:read_concurrency, true}])
     case get_env(:cluster_nodes, []) do
       [] -> {:ok, %State{}}
-      cluster_nodes -> {:ok, do_connect(cluster_nodes)}
+      cluster_nodes ->
+       pid = do_connect(cluster_nodes)
+       IO.inspect pid
+      {:ok, pid}
     end
   end
 
@@ -59,10 +61,10 @@ defmodule RedixCluster.Monitor do
 
   defp reload_slots_map(state) do
     for slots_map <- state.slots_maps, do: close_connection(slots_map)
-    cluster_info = get_cluster_info(state.cluster_nodes)
+    {is_cluster, cluster_info} = get_cluster_info(state.cluster_nodes)
     slots_maps = parse_slots_maps(cluster_info) |> connect_all_slots
     slots = create_slots_cache(slots_maps)
-    new_state = %State{state | slots: slots, slots_maps: slots_maps, version: state.version + 1}
+    new_state = %State{state | slots: slots, slots_maps: slots_maps, version: state.version + 1, is_cluster: is_cluster}
     true = :ets.insert(__MODULE__, [{:cluster_state, new_state}])
     new_state
   end
@@ -82,7 +84,7 @@ defmodule RedixCluster.Monitor do
         case Redix.command(conn, ~w(CLUSTER SLOTS)) do
           {:ok, cluster_info} ->
             Redix.stop(conn)
-            cluster_info
+            {true, cluster_info}
           {:error, %Redix.Error{message: "ERR unknown command 'CLUSTER'"}} ->
             cluster_info_from_single_node(node)
           {:error, %Redix.Error{message: "ERR This instance has cluster support disabled"}} ->
@@ -114,7 +116,7 @@ defmodule RedixCluster.Monitor do
     |> Enum.map(fn({_index, index}) -> index end)
   end
 
-  defp start_link_redix(host, port) do
+  def start_link_redix(host, port) do
   socket_opts = get_env(:socket_opts, [])
   backoff = get_env(:backoff, 2000)
   max_reconnection_attempts = get_env(:max_reconnection_attempts)
@@ -126,10 +128,12 @@ defmodule RedixCluster.Monitor do
   end
 
   defp cluster_info_from_single_node(node) do
-    [["0",
-      Integer.to_string(@redis_cluster_hash_slots - 1),
-      [List.to_string(node.host),Integer.to_string(node.port)]
-     ]]
+    {false,
+      [[0,
+        @redis_cluster_hash_slots - 1,
+        [List.to_string(node.host), node.port]
+      ]]
+    }
   end
 
   defp parse_cluster_slot({cluster_slot, index}) do

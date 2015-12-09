@@ -42,9 +42,9 @@ defmodule RedixCluster.Pools.Supervisor do
     unless restart_counter < @max_retry, do: stop_redis_pool(pool_name)
     :ok
   end
+
   @spec stop_redis_pool(String.t) ::
-  :ok |
-  {:error, error} when error: :not_found | :simple_one_for_one | :running | :restarting
+  :ok | {:error, error} when error: :not_found | :simple_one_for_one | :running | :restarting
   def stop_redis_pool(pool_name) do
     Supervisor.terminate_child(__MODULE__, pool_name)
     Supervisor.delete_child(__MODULE__, pool_name)

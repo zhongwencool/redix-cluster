@@ -12,3 +12,4 @@ config :redix_cluster,
   socket_opts: [],
   backoff: 2000,
   max_reconnection_attempts: nil
+
