@@ -34,10 +34,7 @@ defmodule RedixCluster.Monitor do
     :ets.new(__MODULE__, [:protected, :set, :named_table, {:read_concurrency, true}])
     case get_env(:cluster_nodes, []) do
       [] -> {:ok, %State{}}
-      cluster_nodes ->
-       pid = do_connect(cluster_nodes)
-       IO.inspect pid
-      {:ok, pid}
+      cluster_nodes -> {:ok, do_connect(cluster_nodes)}
     end
   end
 

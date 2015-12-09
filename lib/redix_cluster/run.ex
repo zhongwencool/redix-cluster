@@ -125,13 +125,13 @@ defmodule RedixCluster.Run do
     |> forbid_harmful_command(term2)
   end
 
-  defp forbid_harmful_command("info", _), do: {:error, :invalid_info_command}
-  defp forbid_harmful_command("config", _), do: {:error, :invalid_config_command}
-  defp forbid_harmful_command("shutdown", _), do: {:error, :invalid_shutdown_command}
-  defp forbid_harmful_command("slaveof", _), do: {:error, :invalid_slaveof_command}
+  defp forbid_harmful_command("info", _), do: {:error, :invalid_cluster_command}
+  defp forbid_harmful_command("config", _), do: {:error, :invalid_cluster_command}
+  defp forbid_harmful_command("shutdown", _), do: {:error, :invalid_cluster_command}
+  defp forbid_harmful_command("slaveof", _), do: {:error, :invalid_cluster_command}
   defp forbid_harmful_command(_, key), do: to_string(key)
 
-  defp get_command_keys([["MULTI"]|_]), do: {:error, :must_use_transaction}
+  defp get_command_keys([["MULTI"]|_]), do: {:error, :no_support_transaction}
   defp get_command_keys(commands), do: make_cmd_key(commands, [])
 
   defp make_cmd_key([], acc), do: acc

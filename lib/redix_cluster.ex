@@ -71,7 +71,7 @@ defmodule RedixCluster do
   """
   @spec command(String.t, Keyword.t) ::
     {:ok, Redix.Protocol.redis_value} |
-    {:error, atom | Redix.Error.t}
+    {:error, Redix.Error.t | atom}
   def command(command, opts \\[]), do: command(command, opts, 0)
 
   @doc """
@@ -91,11 +91,10 @@ defmodule RedixCluster do
   """
   @spec command!(String.t, Keyword.t) :: Redix.Protocol.redis_value
   def command!(command, opts \\[]) do
-    case command(command, opts, 0) do
-      {:ok, resp} -> resp
-      {:error, error} -> raise error
-    end
+    command(command, opts)
+    |> parse_error
   end
+
   @doc """
   `Make sure` CROSSSLOT Keys in request hash to the same slot
 
@@ -141,10 +140,8 @@ defmodule RedixCluster do
   """
   @spec pipeline!([command], Keyword.t) :: [Redix.Protocol.redis_value]
   def pipeline!(commands, opts\\ []) do
-    case pipeline(commands, opts, 0) do
-      {:error, error} -> raise error
-      {:ok, resps} -> Enum.map(resps, &parse_error/1)
-    end
+    pipeline(commands, opts)
+    |> parse_error
   end
 
   @doc """
@@ -180,10 +177,8 @@ defmodule RedixCluster do
   """
   @spec transaction!([command], Keyword.t) :: [Redix.Protocol.redis_value]
   def transaction!(commands, opts\\ []) do
-    case transaction(commands, opts, 0) do
-      {:error, error} -> raise error
-      {:ok, resps} -> Enum.map(resps, &parse_error/1)
-    end
+    transaction(commands, opts)
+    |> parse_error
   end
 
   # whenever the application is updated.
@@ -215,7 +210,8 @@ defmodule RedixCluster do
   defp need_retry({:error, :retry}, commands, opts, count, :transaction), do: transaction(commands, opts, count+1)
   defp need_retry(result, _command, _count, _opts, _type), do: result
 
-  defp parse_error(%Redix.Error{} = error), do: raise error
-  defp parse_error(res), do: res
+  defp parse_error({:ok, result}), do: result
+  defp parse_error({:error, %Redix.Error{} = error}), do: raise error
+  defp parse_error({:error, reason}), do: raise RedixCluster.Error, reason
 
 end
