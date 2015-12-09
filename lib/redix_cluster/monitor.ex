@@ -8,7 +8,6 @@ defmodule RedixCluster.Monitor do
   @redis_cluster_hash_slots 16384
 
   defmodule State, do: defstruct cluster_nodes: [], slots: [], slots_maps: [], version: 0
-  alias RedixCluster.Monitor.State , as: State
 
   @spec connect(term) :: :ok | {:error, :connect_to_empty_nodes}
   def connect([]), do: {:error, :connect_to_empty_nodes}

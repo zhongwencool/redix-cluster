@@ -1,6 +1,6 @@
-defmodule ExredisClusterTest do
+defmodule RedixClusterTest do
   use ExUnit.Case
-  doctest ExredisCluster
+  doctest RedixCluster
 
   test "the truth" do
     assert 1 + 1 == 2

@@ -28,11 +28,11 @@ defmodule RedixCluster.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [ {:redix, "~> 0.3.0"},
+    [ {:redix, "~> 0.3.1"},
       {:poolboy, "~> 1.5", override: true},
       {:dialyze, "~> 0.2", only: :dev},
-      {:benchfella, github: "alco/benchfella", only: :dev},
-      {:eredis_cluster, github: "adrienmo/eredis_cluster", only: :dev},
+      {:benchfella, github: "alco/benchfella", only: :bench},
+      {:eredis_cluster, github: "adrienmo/eredis_cluster", only: :bench},
     ]
   end
 end
