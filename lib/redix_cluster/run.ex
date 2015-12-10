@@ -59,8 +59,8 @@ defmodule RedixCluster.Run do
     end
   end
 
-  defp key_to_slot_hash({:error, _} = error), do: error
-  defp key_to_slot_hash(key) do
+  def key_to_slot_hash({:error, _} = error), do: error
+  def key_to_slot_hash(key) do
     case Regex.run(~r/{\S+}/, key) do
       nil -> RedixCluster.Hash.hash(key)
       [tohash_key] ->
@@ -112,7 +112,7 @@ defmodule RedixCluster.Run do
   end
 
   defp parse_trans_result({:error, %Redix.Error{message: <<"MOVED", _redirectioninfo::binary>>}}, version) do
-    new = RedixCluster.Monitor.refresh_mapping(version)
+    RedixCluster.Monitor.refresh_mapping(version)
     {:error, :retry}
   end
   defp parse_trans_result({:error, :no_connection}, version) do
