@@ -88,7 +88,7 @@ defmodule RedixCluster do
   @spec command!(String.t, Keyword.t) :: Redix.Protocol.redis_value
   def command!(command, opts \\[]) do
     command(command, opts)
-    |> parse_error
+      |> parse_error
   end
 
   @doc """
@@ -173,7 +173,7 @@ defmodule RedixCluster do
   @spec transaction!([command], Keyword.t) :: [Redix.Protocol.redis_value]
   def transaction!(commands, opts\\ []) do
     transaction(commands, opts)
-    |> parse_error
+      |> parse_error
   end
 
   # whenever the application is updated.
@@ -190,14 +190,14 @@ defmodule RedixCluster do
   defp pipeline(commands, opts, count) do
     unless count==0, do: :timer.sleep(@redis_retry_delay)
     RedixCluster.Run.pipeline(commands, opts)
-    |> need_retry(commands, opts, count, :pipeline)
+      |> need_retry(commands, opts, count, :pipeline)
   end
 
   defp transaction(_commands, _opts, count) when count >= @max_retry, do: {:error, :no_connection}
   defp transaction(commands, opts, count) do
     unless count==0, do: :timer.sleep(@redis_retry_delay)
     RedixCluster.Run.transaction(commands, opts)
-    |> need_retry(commands, opts, count, :transaction)
+      |> need_retry(commands, opts, count, :transaction)
   end
 
   defp need_retry({:error, :retry}, command, opts, count, :command), do: command(command, opts, count+1)

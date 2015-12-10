@@ -8,5 +8,4 @@ defmodule RedixCluster.Helper do
       end
     end
   end
-  
 end

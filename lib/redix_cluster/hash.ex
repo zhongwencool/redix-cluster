@@ -38,7 +38,7 @@ defmodule RedixCluster.Hash do
             0x6e,0x17,0x7e,0x36,0x4e,0x55,0x5e,0x74,0x2e,0x93,0x3e,0xb2,0x0e,0xd1,0x1e,0xf0>>
 
   @spec hash(binary) :: integer
-  def hash(key) when is_binary(key), do: to_char_list(key) |> hash
+  def hash(key) when is_binary(key), do: key |> to_char_list |> hash
   def hash(key), do: crc16(0, key) |>rem @redis_cluster_hash_slots
 
   defp crc16(crc, []), do: crc

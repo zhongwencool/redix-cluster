@@ -1,6 +1,6 @@
 defmodule RedixCluster.Pools.Supervisor do
   @moduledoc false
-  
+
   use Supervisor
   use RedixCluster.Helper
 
@@ -18,7 +18,7 @@ defmodule RedixCluster.Pools.Supervisor do
 
   @spec new_pool(char_list, integer) :: {:ok, atom}|{:error, atom}
   def new_pool(host, port) do
-    pool_name = Enum.join(["Pool", host, ":", port]) |> String.to_atom
+    pool_name = ["Pool", host, ":", port] |> Enum.join |> String.to_atom
     case Process.whereis(pool_name) do
       nil ->
         :ets.insert(__MODULE__, {pool_name,0})
@@ -31,7 +31,7 @@ defmodule RedixCluster.Pools.Supervisor do
         worker_args = [host: host, port: port, pool_name: pool_name]
         child_spec = :poolboy.child_spec(pool_name, pool_args, worker_args)
         {result, _} = Supervisor.start_child(__MODULE__, child_spec)
-        {result, pool_name};
+        {result, pool_name}
       _ -> {:ok, pool_name}
     end
   end

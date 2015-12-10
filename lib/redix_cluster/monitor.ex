@@ -1,7 +1,6 @@
 defmodule RedixCluster.Monitor do
-  # todo
   @moduledoc false
-  
+
   use GenServer
   use RedixCluster.Helper
 
@@ -53,13 +52,13 @@ defmodule RedixCluster.Monitor do
 
   defp do_connect(cluster_nodes) do
     %State{cluster_nodes: cluster_nodes}
-    |> reload_slots_map
+      |> reload_slots_map
   end
 
   defp reload_slots_map(state) do
     for slots_map <- state.slots_maps, do: close_connection(slots_map)
     {is_cluster, cluster_info} = get_cluster_info(state.cluster_nodes)
-    slots_maps = parse_slots_maps(cluster_info) |> connect_all_slots
+    slots_maps = cluster_info |> parse_slots_maps |> connect_all_slots
     slots = create_slots_cache(slots_maps)
     new_state = %State{state | slots: slots, slots_maps: slots_maps, version: state.version + 1, is_cluster: is_cluster}
     true = :ets.insert(__MODULE__, [{:cluster_state, new_state}])
@@ -95,9 +94,10 @@ defmodule RedixCluster.Monitor do
   #[5461, 10922, ["Host2", 7000], ["SlaveHost2", 7001]],
   #[0, 5460, ["Host3", 7000], ["SlaveHost3", 7001]]]
   defp parse_slots_maps(cluster_info) do
-    Stream.with_index(cluster_info)
-    |> Stream.map(&parse_cluster_slot/1)
-    |> Enum.to_list
+    cluster_info
+      |> Stream.with_index
+      |> Stream.map(&parse_cluster_slot/1)
+      |> Enum.to_list
   end
 
   defp connect_all_slots(slots_maps) do
@@ -108,9 +108,9 @@ defmodule RedixCluster.Monitor do
     for slots_map <- slots_maps do
       for index <- slots_map.start_slot..slots_map.end_slot, do: {index, slots_map.index}
     end
-    |> List.flatten
-    |> List.keysort(0)
-    |> Enum.map(fn({_index, index}) -> index end)
+      |> List.flatten
+      |> List.keysort(0)
+      |> Enum.map(fn({_index, index}) -> index end)
   end
 
   def start_link_redix(host, port) do
@@ -151,8 +151,9 @@ defmodule RedixCluster.Monitor do
   end
 
   defp get_slot_name(start_slot, end_slot) do
-    Enum.join([start_slot, ":", end_slot])
-    |> String.to_atom
+    [start_slot, ":", end_slot]
+      |> Enum.join
+      |> String.to_atom
   end
 
   defp parse_master_node([[master_host, master_port]|_]) do

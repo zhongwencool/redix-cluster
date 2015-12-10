@@ -8,10 +8,10 @@ defmodule RedixCluster.Run do
     case RedixCluster.Monitor.get_slot_cache do
      {:cluster, slots_maps, slots, version} ->
         command
-        |> parse_key_from_command
-        |> key_to_slot_hash
-        |> get_pool_by_slot(slots_maps, slots, version)
-        |> query_redis_pool(command, :command, opts)
+          |> parse_key_from_command
+          |> key_to_slot_hash
+          |> get_pool_by_slot(slots_maps, slots, version)
+          |> query_redis_pool(command, :command, opts)
      {:not_cluster, version, pool_name} ->
        query_redis_pool({version, pool_name}, command, :command, opts)
     end
@@ -22,11 +22,11 @@ defmodule RedixCluster.Run do
     case RedixCluster.Monitor.get_slot_cache do
       {:cluster, slots_maps, slots, version} ->
          pipeline
-         |> parse_keys_from_pipeline
-         |> keys_to_slot_hashs
-         |> is_same_slot_hashs
-         |> get_pool_by_slot(slots_maps, slots, version)
-         |> query_redis_pool(pipeline, :pipeline, opts)
+           |> parse_keys_from_pipeline
+           |> keys_to_slot_hashs
+           |> is_same_slot_hashs
+           |> get_pool_by_slot(slots_maps, slots, version)
+           |> query_redis_pool(pipeline, :pipeline, opts)
       {:not_cluster, version, pool_name} ->
          query_redis_pool({version, pool_name}, pipeline, :pipeline, opts)
     end
@@ -38,11 +38,11 @@ defmodule RedixCluster.Run do
     case RedixCluster.Monitor.get_slot_cache do
       {:cluster, slots_maps, slots, version} ->
          pipeline
-         |> parse_keys_from_pipeline
-         |> keys_to_slot_hashs
-         |> is_same_slot_hashs
-         |> get_pool_by_slot(slots_maps, slots, version)
-         |> query_redis_pool(transaction, :pipeline, opts)
+           |> parse_keys_from_pipeline
+           |> keys_to_slot_hashs
+           |> is_same_slot_hashs
+           |> get_pool_by_slot(slots_maps, slots, version)
+           |> query_redis_pool(transaction, :pipeline, opts)
       {:not_cluster, version, pool_name} ->
          query_redis_pool({version, pool_name}, transaction, :pipeline, opts)
     end
@@ -65,9 +65,9 @@ defmodule RedixCluster.Run do
       nil -> RedixCluster.Hash.hash(key)
       [tohash_key] ->
         tohash_key
-        |> String.strip(?{)
-        |> String.strip(?})
-        |> RedixCluster.Hash.hash
+          |> String.strip(?{)
+          |> String.strip(?})
+          |> RedixCluster.Hash.hash
     end
   end
 
@@ -101,8 +101,9 @@ defmodule RedixCluster.Run do
   end
   defp query_redis_pool({version, pool_name}, command, type, opts) do
     try do
-      :poolboy.transaction(pool_name, fn(worker) -> GenServer.call(worker, {type, command, opts}) end)
-      |> parse_trans_result(version)
+      pool_name
+        |> :poolboy.transaction(fn(worker) -> GenServer.call(worker, {type, command, opts}) end)
+        |> parse_trans_result(version)
     catch
        :exit, _ ->
          RedixCluster.Monitor.refresh_mapping(version)
@@ -121,8 +122,10 @@ defmodule RedixCluster.Run do
   defp parse_trans_result(payload, _), do: payload
 
   defp verify_command_key(term1, term2) do
-    String.downcase(to_string(term1))
-    |> forbid_harmful_command(term2)
+    term1
+      |> to_string
+      |> String.downcase
+      |> forbid_harmful_command(term2)
   end
 
   defp forbid_harmful_command("info", _), do: {:error, :invalid_cluster_command}
