@@ -1,6 +1,6 @@
 # RedixCluster
 
-**a wrapper for redix to support cluster mode of redis 3.0.0+
+**a wrapper for redix to support cluster mode of redis 
 
 ## Installation
 
@@ -37,10 +37,7 @@
           backoff: 2000,
           max_reconnection_attempts: nil
           
-   if your use this project when  redis is not cluster, just config
-   
-         cluster_nodes: [%{host: '10.1.2.7', port: 7000}]
-   it will establish several connections between poolboy pools(pool_size) and redis
+   `it's never slow down the speed of commands even redis is not on cluster`  
 
 ## Test  
         MIX_EVN=test mix espec
@@ -49,10 +46,10 @@
 
        MIX_ENV=bench mix bench
        
-##Application‘s structure
+## Application‘s structure
 
    ![](http://7fveua.com1.z0.glb.clouddn.com/redix_cluster.jpg)
    
-##TODO   
+## TODO   
 
       
