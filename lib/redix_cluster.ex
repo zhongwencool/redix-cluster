@@ -58,10 +58,6 @@ defmodule RedixCluster do
       {:error,
        %Redix.Error{message: "CROSSSLOT Keys in request don't hash to the same slot"}}
 
-      iex> RedixCluster.command(~w(mget ym d ))
-      {:error,
-      %Redix.Error{message: "CROSSSLOT Keys in request don't hash to the same slot"}}
-
       iex> RedixCluster.command(~w(mset {keysamehash}ym 1 {keysamehash}d 2 ))
       {:ok, "OK"}
 
@@ -133,9 +129,8 @@ defmodule RedixCluster do
       {:ok, ["OK", 1, nil]}
 
       iex> RedixCluster.pipeline!([~w(SET {diffhash3}k3 foo), ~w(INCR {diffhash2}k2), ~w(GET {diffhash1}k1)])
-      ** (UndefinedFunctionError) undefined function: :key_must_same_slot.exception/1 (module :key_must_same_slot is not available)
-                    :key_must_same_slot.exception([])
-      (redix_cluster) lib/redix_cluster.ex:48: RedixCluster.pipeline!/2
+      ** (RedixCluster.Error) CROSSSLOT Keys in request don't hash to the same slot
+          (redix_cluster) lib/redix_cluster.ex:215: RedixCluster.parse_error/1
 
   """
   @spec pipeline!([command], Keyword.t) :: [Redix.Protocol.redis_value]
@@ -171,9 +166,9 @@ defmodule RedixCluster do
       {:ok, ["OK", "QUEUED", "QUEUED", "QUEUED", ["OK", 2, nil]]}
 
       iex> RedixCluster.transaction!([~w(SET {diffhash3}k3 foo), ~w(INCR {diffhash2}k2), ~w(GET {diffhash1}k1)])
-      ** (UndefinedFunctionError) undefined function: :key_must_same_slot.exception/1 (module :key_must_same_slot is not available)
-                             :key_must_same_slot.exception([])
-             (redix_cluster) lib/redix_cluster.ex:57: RedixCluster.transaction!/2
+      ** (RedixCluster.Error) CROSSSLOT Keys in request don't hash to the same slot
+          (redix_cluster) lib/redix_cluster.ex:215: RedixCluster.parse_error/1
+
   """
   @spec transaction!([command], Keyword.t) :: [Redix.Protocol.redis_value]
   def transaction!(commands, opts\\ []) do
