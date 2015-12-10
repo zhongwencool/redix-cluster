@@ -4,7 +4,9 @@
   "dogma": {:hex, :dogma, "0.0.11"},
   "eredis": {:git, "https://github.com/wooga/eredis.git", "cbc013f516e464706493c01662e5e9dd82d1db01", [tag: "v1.0.8"]},
   "eredis_cluster": {:git, "https://github.com/adrienmo/eredis_cluster.git", "59d82059d14add2c24b2243084ab89165d3b1953", []},
+  "espec": {:git, "https://github.com/antonmi/espec.git", "3b2dd8acec2b78c19e51f0a892f3e0b68614c68f", []},
   "ex_doc": {:hex, :ex_doc, "0.11.1"},
+  "meck": {:hex, :meck, "0.8.3"},
   "poison": {:hex, :poison, "1.5.0"},
   "poolboy": {:hex, :poolboy, "1.5.1"},
   "redix": {:hex, :redix, "0.3.1"}}

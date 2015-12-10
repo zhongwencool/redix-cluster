@@ -112,7 +112,7 @@ defmodule RedixCluster.Run do
   end
 
   defp parse_trans_result({:error, %Redix.Error{message: <<"MOVED", _redirectioninfo::binary>>}}, version) do
-    RedixCluster.Monitor.refresh_mapping(version)
+    new = RedixCluster.Monitor.refresh_mapping(version)
     {:error, :retry}
   end
   defp parse_trans_result({:error, :no_connection}, version) do

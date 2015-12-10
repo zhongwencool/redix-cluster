@@ -7,6 +7,7 @@ defmodule RedixCluster.Mixfile do
      elixir: "~> 1.1",
      build_embedded: Mix.env in [:prod],
      start_permanent: Mix.env == :prod,
+     preferred_cli_env: [espec: :test],
      deps: deps]
   end
 
@@ -34,6 +35,7 @@ defmodule RedixCluster.Mixfile do
       {:dogma, "~> 0.0", only: :dev},
       {:benchfella, github: "alco/benchfella", only: :bench},
       {:eredis_cluster, github: "adrienmo/eredis_cluster", only: :bench},
+      {:espec, github: "antonmi/espec", only: :test},
     ]
   end
 end

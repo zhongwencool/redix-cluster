@@ -77,7 +77,7 @@ defmodule RedixCluster.Monitor do
   defp get_cluster_info([node|restnodes]) do
     case start_link_redix(node.host, node.port) do
       {:ok, conn} ->
-        case Redix.command(conn, ~w(CLUSTER SLOTS)) do
+        case Redix.command(conn, ~w(CLUSTER SLOTS), []) do
           {:ok, cluster_info} ->
             Redix.stop(conn)
             {true, cluster_info}
